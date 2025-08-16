@@ -1,0 +1,24 @@
+@media(max-width:640px) {
+      body.locked, html.locked {
+    overflow: hidden;
+    height: 100svh;
+    width: 100svw;  
+    margin: 0;
+    padding: 0;
+  }
+    .rotate-piano{
+        transform: rotate(90deg);
+        transform-origin: center ; 
+        transition: transform 1s ease;
+        width: 100svh;
+        height: 100svw;
+       border-radius: 0%;
+       position: relative;
+       display: flex;
+       flex-direction: column;
+        align-items: center;
+        justify-content: end;
+    }
+}
+
+
