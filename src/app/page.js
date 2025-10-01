@@ -4,6 +4,7 @@ import { useState , useEffect , useRef , useCallback , useLayoutEffect } from "r
 import { motion, useAnimation , AnimatePresence } from "motion/react";
 import { CircleX , Menu } from 'lucide-react';
 import  "./styles.css";
+import { LoaderOverlay } from "./LoaderOverlay";
 export default function Home() {
    const [fullScreen , setFullScreen] = useState(false);
    const [showDropdown, setShowDropdown] = useState(false);
@@ -20,12 +21,9 @@ const [recordingStartTime, setRecordingStartTime] = useState(null);
 
 const [isJamming, setIsJamming] = useState(false);
 const jamIntervalRef = useRef(null);  // to clear the loop
-const [hiHatOneAnim, setHiHatOneAnim] = useState(false);
-const [hiHatTwoAnim, setHiHatTwoAnim] = useState(false);
-const [hiHatThreeAnim, setHiHatThreeAnim] = useState(false);
-const [selectedFeature, setSelectedFeature] = useState(null);
 const [showFeatureOnFullScreen , setShowFeatureOnFullScreen] = useState(false);
 const [pressedKey, setPressedKey] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
  const activeKeysRef = useRef(new Set());
 
 const startRecording = () => {
@@ -93,12 +91,13 @@ useEffect(() => {
   overlay2: "/drums-sound/drums-snare-right.wav",
   overlay3: "/drums-sound/drums-snare-left.wav",
   overlay4: "/drums-sound/drums-main-kick.wav",
-  overlay5: "/drums-sound/drums-snare-right-right.wav",
+  overlay5: "/drums-sound/drums-snare-main.wav",
   hithatOne: '/drums-sound/drums-hiHat-splash.wav',
   hithatTwo: '/drums-sound/drums-hiHat-small.wav',
   hithatThree: '/drums-sound/drums-hihat-small.wav'
 }; 
 
+ const allSoundPaths = Object.values(drumSounds);
 
 let currentStep = 0;
 const totalSteps = 8;
@@ -374,8 +373,45 @@ useEffect(() => {
   }, duration);
 };
 
+  useEffect(() => {
+    if (allSoundPaths.length === 0) {
+      console.warn('No drum sound paths found.');
+      setIsLoaded(true); 
+      return;
+    }
 
+    const loadingPromises = allSoundPaths.map(path => {
+      return new Promise((resolve) => {
+        const audio = new Audio(path);
+        
+        // Resolve once the audio is ready to play through
+        audio.addEventListener('canplaythrough', () => resolve(), { once: true });
+        
+        // Resolve even on error to prevent Promise.all from blocking the UI entirely
+        audio.addEventListener('error', () => {
+          console.error(`Failed to load drum sound: ${path}`);
+          resolve();
+        }, { once: true });
+      });
+    });
 
+    Promise.all(loadingPromises)
+      .then(() => {
+        setIsLoaded(true);
+        console.log('All drum sounds preloaded successfully! 🥁');
+      })
+      .catch(error => {
+        console.error('An error occurred during drum sound preload:', error);
+        setIsLoaded(true);
+      });
+  }, []);
+
+  
+   if (!isLoaded) {
+     return (
+   <LoaderOverlay/>
+  );
+  }
 
   return (
     <div className={`w-full ${fullScreen ? "h-[100svh] w-[100svw]  overflow-hidden" : "min-h-screen"}    flex flex-col   justify-center items-center  2xl:px-0  `}>
@@ -640,44 +676,50 @@ useEffect(() => {
   {/* Overlays */}
     {/* Overlays — each has positions for default + sm + md + lg + xl + 2xl */}
  
-      <motion.img src="/hi-hat-left-middle.png" className={`absolute z-50 ${fullScreen && activeFeature
-    ? "-top-2 max-[380px]:top-[-12] left-40 max-[350px]:left-9 max-[370px]:left-26 max-[380px]:left-14 max-[400px]:left-35 max-[420px]:left-40 w-[120px] " // <-- your custom combo classes
+      <motion.img src="/hi-hat-left-middle.png" className={`absolute z-50 select-none
+        ${
+  fullScreen && activeFeature
+    ? selectedTheme === themes[2].src
+      ? "-top-6 max-[380px]:top-[-12] left-[16%] max-[350px]:left-9 max-[370px]:left-26 max-[380px]:left-12 max-[400px]:left-32 w-[120px]"
+      : "-top-2 max-[380px]:top-[-12] left-40 max-[350px]:w-[100px] max-[350px]:left-[22%] max-[370px]:left-26 max-[380px]:left-14 max-[400px]:left-35 max-[420px]:left-40 w-[120px]"
     : fullScreen
-      ? "-top-2 left-32 max-[350px]:left-9 max-[370px]:left-22 max-[380px]:left-9 max-[400px]:left-30 w-[100px] "
-      : "top-18 left-10 w-[50px] h-[40px] max-[400px]:left-8"
-  }[@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16  md:left-2 [@media(min-width:500px)_and_(max-width:600px)]:left-12 lg:left-8 xl  xl:left-34 2xl:left-48 [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={crashAnimating ? crashAnimation : { rotateX: 0 }}  onClick={() => handleHiHatTap(setIsCrashAnimating, 'hithatOne', 700)}/>
-      <motion.img src="/hi-hat-left-top.png" className={`absolute  ${fullScreen && activeFeature
-      ? "-top-2 left-59 w-[100px] max-[370px]:left-44 max-[380px]:left-34 max-[400px]:left-53" // custom combo
+      ? selectedTheme === themes[2].src
+        ? "-top-6 max-[380px]:top-[-12] left-[12%] max-[350px]:left-[16.5%] max-[370px]:left-26 max-[380px]:left-[2%] max-[400px]:left-[11%] w-[120px]"
+        : "-top-2 left-32 max-[350px]:w-[100px] max-[350px]:left-[19%] max-[370px]:left-22 max-[380px]:left-9 max-[400px]:left-30 w-[100px]"
+      : "top-18 max-[400px]:left-[8.4%] left-10 w-[50px] h-[40px] max-[380px]:left-[8%]"
+} $[@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16  md:left-2 [@media(min-width:500px)_and_(max-width:600px)]:left-12 lg:left-8 xl  xl:left-34 ${selectedTheme === themes[2].src ? "2xl:left-45" : "2xl:left-48"}  [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={crashAnimating ? crashAnimation : { rotateX: 0 }}  onClick={() => handleHiHatTap(setIsCrashAnimating, 'hithatOne', 700)}/>
+      <motion.img src="/hi-hat-left-top.png" className={`absolute select-none  ${fullScreen && activeFeature
+      ? "-top-2 left-59 max-[350px]:w-[90px] max-[350px]:left-[30%] w-[100px] max-[370px]:left-44 max-[380px]:left-34 max-[400px]:left-53" // custom combo
       : fullScreen
-        ? "-top-2 left-54 w-[100px] max-[370px]:left-40 max-[380px]:left-30 max-[400px]:left-50"
-        : "top-18 left-20 w-[50px] h-[40px] max-[400px]:left-18"
-    }  [@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16   md:left-23 [@media(min-width:500px)_and_(max-width:600px)]:left-28 lg:left-36   xl:left-60 2xl:left-74  [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={isLeftDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }} onTap={() => handleHiHatTap(setIsLeftDiscAnimating, 'hithatTwo', 600)} />
+        ? "-top-2 left-54 w-[100px]  max-[350px]:w-[90px] max-[350px]:left-[28%] max-[370px]:left-40 max-[380px]:left-30 max-[400px]:left-50"
+        : "top-18 left-20 w-[50px] h-[40px]   max-[400px]:left-18"
+    }  [@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16   md:left-23 [@media(min-width:500px)_and_(max-width:600px)]:left-28 lg:left-36   xl:left-60 ${selectedTheme === themes[2].src ? "2xl:left-72" : "2xl:left-74"}   [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={isLeftDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }} onTap={() => handleHiHatTap(setIsLeftDiscAnimating, 'hithatTwo', 600)} />
       <motion.img
   src="/hi-hat-right-image.png"
-  className={`absolute
+  className={`absolute select-none
     ${fullScreen && activeFeature
-      ? "top-4 right-44 w-[120px] max-[370px]:right-32 max-[380px]:right-18 max-[400px]:right-38 max-[400px]:top-4" // custom combo
+      ? "top-4 right-44 w-[120px] max-[350px]:w-[100px] max-[350px]:right-[25%] max-[370px]:right-32 max-[380px]:right-18 max-[400px]:right-38 max-[400px]:top-4" // custom combo
       : fullScreen
-        ? "top-2 right-38 w-[120px] max-[370px]:right-24 max-[380px]:right-12 max-[400px]:right-32 max-[400px]:top-2"
+        ? "top-2 right-38 max-[350px]:right-[20%] w-[120px] max-[370px]:right-24 max-[380px]:right-12 max-[400px]:right-32 max-[400px]:top-2"
         : "top-20 right-14 max-[400px]:right-12 max-[400px]:top-22 w-[50px] h-[40px]"
     }
     md:top-18 lg:top-20 xl:top-24
     md:right-8 lg:right-14 [@media(min-width:500px)_and_(max-width:600px)]:top-12 xl:right-38
-    2xl:right-58 w-[50px] h-[40px]
+    ${selectedTheme === themes[2].src ? "2xl:right-56" : "2xl:right-58"} w-[50px] h-[40px]
     [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px]
     lg:w-[110px] lg:h-[90px] 2xl:w-[160px] 2xl:h-[60px]`}
   animate={isRightDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }}
   onTap={() => handleHiHatTap(setIsRightDiscAnimating, 'hithatThree', 600)}
 />
-   <img src={selectedTheme}alt="Description" className={`object-contain  ${fullScreen ? "w-full h-full " : "w-5/6 h-[80%] "}    md:w-full `} />
+   <img src={selectedTheme}alt="Description" className={`object-contain select-none ${fullScreen ? "w-full h-full " : "w-5/6 h-[80%] "}    md:w-full `} />
    {/*overlay div */}
  <motion.div
-  className={`absolute w-[70px] h-[20px] top-[40%] left-[17%] 
-    max-[400px]:w-[60px] max-[400px]:h-[15px] max-[400px]:top-[42%] max-[400px]:left-[17%] 
+  className={`absolute 
+     ${ fullScreen && activeFeature ? " max-[350px]:w-[86px] max-[380px]:w-[100px] w-[105px] h-[30px]  max-[350px]:left-[29%] max-[370px]:left-[24%] max-[380px]:left-[19%] top-[20%] left-[26%]" : fullScreen ? " max-[350px]:w-[96px] max-[380px]:w-[105px] w-[120px] h-[30px] max-[350px]:left-[26%] max-[370px]:left-[20%] max-[380px]:left-[16%] top-[20%] left-[22%]" : " max-[400px]:w-[60px] max-[400px]:h-[15px] max-[400px]:top-[42%] max-[400px]:left-[17%] w-[70px] h-[20px] top-[40%] left-[17%]  "}
     md:w-[116px] md:h-[25px] md:top-[36%] md:left-[11%] 
     lg:left-[13%] 2xl:left-[24%] lg:top-[34%] 2xl:top-[35%] 
     z-999 lg:w-[126px] lg:h-[50px] xl:w-[122px] xl:h-[50px] 
-    2xl:w-[150px] 2xl:h-[60px] rounded-full flex items-center justify-center`}
+    2xl:w-[150px] 2xl:h-[60px] rounded-full flex items-center justify-center `}
   onClick={() => playDrums("overlay1")}
 >
   {/* Small centered circle */}
@@ -689,8 +731,9 @@ useEffect(() => {
 </motion.div>
 
 <motion.div
-  className={`absolute w-[64px] h-[20px] top-[30%] left-[32%] 
-    max-[400px]:w-[50px] max-[400px]:h-[15px] max-[400px]:top-[33%] max-[400px]:left-[32%] 
+  className={`absolute  
+    ${fullScreen && activeFeature ? " max-[350px]:w-[80px] max-[350px]:h-[20px] max-[350px]:top-1 max-[350px]:left-[39%] max-[370px]:left-[37%] max-[370px]:w-[78px] max-[380px]:w-[88px] max-[380px]:h-[20px] max-[380px]:top-1 max-[380px]:left-[35%] max-[400px]:w-[80px] max-[400px]:h-[20px] max-[400px]:top-1  max-[400px]:left-[38%] w-[92px] h-[25px]  top-1 left-[37.5%]" : fullScreen ? "max-[350px]:w-[100px] max-[350px]:h-[20px] max-[350px]:top-1 max-[350px]:left-[36%] max-[370px]:left-[35%] max-[380px]:w-[88px] max-[380px]:h-[20px] max-[380px]:top-1 max-[380px]:left-[33%] max-[400px]:w-[88px] max-[400px]:h-[20px] max-[400px]:top-1  max-[400px]:left-[36%] w-[98px] h-[25px]  top-1 left-[36%]" : "max-[400px]:w-[50px] max-[400px]:h-[15px] max-[400px]:top-[33%] max-[400px]:left-[32%] w-[64px] h-[20px] top-[30%] left-[32%]  "}
+     
     [@media(min-width:500px)_and_(max-width:600px)]:top-[20%] 
     [@media(min-width:500px)_and_(max-width:600px)]:left-[33%] 
     [@media(min-width:500px)_and_(max-width:600px)]:w-[70px]  
@@ -698,7 +741,7 @@ useEffect(() => {
     lg:left-[30%] lg:top-[20%] lg:w-[130px] lg:h-[32px] 
     z-999 xl:w-[122px] xl:h-[30px] xl:left-[34%]  
     2xl:w-[124px] 2xl:h-[30px] 2xl:left-[37%] 2xl:top-[20%] 
-    rounded-full flex items-center justify-center`}
+    rounded-full flex items-center justify-center `}
   onClick={() => playDrums("overlay2")}
 >
   {/* Small centered circle with soft black glow */}
@@ -710,8 +753,8 @@ useEffect(() => {
 
 </motion.div>
 <motion.div
-  className={`absolute w-[64px] h-[20px] top-[30%] left-[48%] 
-    max-[400px]:w-[50px] max-[400px]:h-[15px] max-[400px]:top-[33%] max-[400px]:left-[49%] 
+  className={`absolute w-[64px] h-[20px] 
+        ${fullScreen && activeFeature ? "max-[350px]:w-[72px] max-[350px]:h-[20px] max-[350px]:top-1 max-[350px]:left-[50%] max-[370px]:left-[49%] max-[380px]:w-[88px] max-[380px]:h-[20px] max-[380px]:top-1 max-[380px]:left-[49%] max-[400px]:w-[88px] max-[400px]:h-[20px] max-[400px]:top-1  max-[400px]:left-[50%] w-[85px] h-[25px]  top-1 left-[50%]" : fullScreen ? "max-[350px]:w-[86px] max-[350px]:h-[20px] max-[350px]:top-1 max-[350px]:left-[49%] max-[370px]:left-[49%] max-[380px]:w-[88px] max-[380px]:h-[20px] max-[380px]:top-1 max-[380px]:left-[49%] max-[400px]:w-[88px] max-[400px]:h-[20px] max-[400px]:top-1  max-[400px]:left-[50%] w-[98px] h-[25px]  top-1 left-[50%]" : "max-[400px]:w-[50px] max-[400px]:h-[15px] max-[400px]:top-[33%] max-[400px]:left-[49%] top-[30%] left-[48%]  "}
     [@media(min-width:500px)_and_(max-width:600px)]:top-[20%] 
     [@media(min-width:500px)_and_(max-width:600px)]:left-[50%] 
     [@media(min-width:500px)_and_(max-width:600px)]:w-[70px]  
@@ -719,7 +762,7 @@ useEffect(() => {
     lg:left-[48%] lg:top-[20%] lg:w-[130px] lg:h-[32px]   
     z-999 xl:w-[122px] xl:h-[30px] xl:left-[50%]  
     2xl:w-[124px] 2xl:h-[30px] 2xl:left-[49%] 2xl:top-[20%] 
-    rounded-full flex items-center justify-center`}
+    rounded-full flex items-center justify-center `}
   onClick={() => playDrums("overlay3")}
 >
   {activeOverlay === "overlay3" && (
@@ -727,8 +770,8 @@ useEffect(() => {
   )}
 </motion.div>
 <motion.div
-  className={`absolute w-[94px] h-[94px] top-[54%] left-[36%]
-    max-[400px]:w-[84px] max-[400px]:h-[84px] max-[400px]:top-[54%] max-[400px]:left-[36%] 
+  className={`absolute 
+      ${fullScreen && activeFeature ? "max-[350px]:w-[130px] max-[350px]:h-[130px]  max-[370px]:w-[140px] max-[370px]:h-[140px]  max-[350px]:top-[37%] max-[350px]:left-[41%] max-[370px]:left-[39%] max-[370px]:top-[37%]  max-[380px]:w-[150px] max-[380px]:h-[150px] max-[380px]:top-[39%] max-[380px]:left-[37%] max-[400px]:w-[155px] max-[400px]:h-[155px] max-[400px]:top-[36%]  max-[400px]:left-[39%] w-[162px] h-[162px]  top-[36%] left-[39%]" : fullScreen ? "max-[350px]:w-[150px] max-[350px]:h-[150px]   max-[370px]:w-[150px] max-[370px]:h-[150px]  max-[350px]:top-[36%] max-[350px]:left-[39.5%] max-[370px]:left-[37.5%] max-[370px]:top-[37%]  max-[380px]:w-[165px] max-[380px]:h-[165px] max-[380px]:top-[36%] max-[380px]:left-[35%] max-[400px]:w-[164px] max-[400px]:h-[164px] max-[400px]:top-[36%]  max-[400px]:left-[38%] w-[178px] h-[178px]  top-[36%] left-[38%]" : "top-[54%] left-[36%]  max-[400px]:w-[84px] max-[400px]:h-[84px] max-[400px]:top-[54%] max-[400px]:left-[36%] w-[94px] h-[94px]  "}  
     [@media(min-width:500px)_and_(max-width:600px)]:top-[50%] 
     [@media(min-width:500px)_and_(max-width:600px)]:left-[36%] 
     [@media(min-width:500px)_and_(max-width:600px)]:w-[122px]  
@@ -737,7 +780,7 @@ useEffect(() => {
     lg:left-[34%] lg:top-[50%] lg:w-[210px] lg:h-[210px]   
     z-999 xl:w-[220px] xl:h-[220px] xl:top-[48%] xl:left-[37%]  
     2xl:w-[220px] 2xl:h-[220px] 2xl:left-[39%] 2xl:top-[48%] 
-    rounded-full flex items-center justify-center`}
+    rounded-full flex items-center justify-center `}
   onClick={() => playDrums("overlay4")}
 >
   {activeOverlay === "overlay4" && (
@@ -746,8 +789,9 @@ useEffect(() => {
 </motion.div>
 
 <motion.div
-  className={`absolute w-[68px] h-[15px] top-[43%] left-[62%]
-    max-[400px]:w-[70px] max-[400px]:h-[15px] max-[400px]:top-[44%] max-[400px]:left-[62%]
+  className={`absolute 
+     ${fullScreen && activeFeature ? "max-[350px]:w-[82px] max-[350px]:h-[20px] max-[350px]:top-[22%] max-[350px]:left-[59%] max-[370px]:top-[23%] max-[370px]:left-[61%] max-[370px]:h-[16px] max-[380px]:w-[92px] max-[380px]:h-[20px] max-[380px]:top-[21%] max-[380px]:left-[62%] max-[400px]:w-[94px] max-[400px]:h-[20px] max-[400px]:top-[22%]  max-[400px]:left-[60%] w-[105px] h-[25px]  top-[22%] left-[60%]" : fullScreen ? "max-[350px]:w-[92px] max-[350px]:h-[20px] max-[350px]:top-[22%] max-[350px]:left-[60%] max-[370px]:top-[23%] max-[370px]:left-[62%] max-[370px]:h-[16px] max-[380px]:w-[98px] max-[380px]:h-[20px] max-[380px]:top-[21%] max-[380px]:left-[65%] max-[400px]:w-[105px] max-[400px]:h-[20px] max-[400px]:top-[22%]  max-[400px]:left-[62%] w-[118px] h-[25px]  top-[22%] left-[62%]" : "max-[400px]:w-[70px] max-[400px]:h-[15px] max-[400px]:top-[44%] max-[400px]:left-[62%] w-[68px] h-[15px] top-[43%] left-[62%]"}
+    
     [@media(min-width:500px)_and_(max-width:600px)]:top-[20%]
     [@media(min-width:500px)_and_(max-width:600px)]:left-[50%]
     [@media(min-width:500px)_and_(max-width:600px)]:w-[70px]
@@ -755,7 +799,7 @@ useEffect(() => {
     lg:left-[66%] lg:top-[38%] lg:w-[134px] lg:h-[32px]
     xl:w-[144px] xl:h-[30px] xl:top-[37%] xl:left-[62%]
     2xl:w-[144px] 2xl:h-[30px] 2xl:left-[60%] 2xl:top-[38%]
-    rounded-full z-999 flex items-center justify-center`}
+    rounded-full z-999 flex items-center justify-center `}
   onClick={() => playDrums("overlay5")}
 >
   {activeOverlay === "overlay5" && (
