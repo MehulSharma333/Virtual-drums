@@ -88,13 +88,13 @@ useEffect(() => {
 
    const drumSounds = {
   overlay1: "/drums-sound/drums-snare-left-left.wav",
-  overlay2: "/drums-sound/drums-snare-right.wav",
-  overlay3: "/drums-sound/drums-snare-left.wav",
+  overlay2: "/drums-sound/drums-snare-right-top.wav",
+  overlay3: "/drums-sound/drums-snare-left-top.wav",
   overlay4: "/drums-sound/drums-main-kick.wav",
   overlay5: "/drums-sound/drums-snare-main.wav",
   hithatOne: '/drums-sound/drums-hiHat-splash.wav',
   hithatTwo: '/drums-sound/drums-hiHat-small.wav',
-  hithatThree: '/drums-sound/drums-hihat-small.wav'
+  hithatThree: '/drums-sound/drums-hihat-three.wav'
 }; 
 
  const allSoundPaths = Object.values(drumSounds);
@@ -687,13 +687,13 @@ useEffect(() => {
         ? "-top-6 max-[380px]:top-[-12] left-[12%] max-[350px]:left-[16.5%] max-[370px]:left-26 max-[380px]:left-[2%] max-[400px]:left-[11%] w-[120px]"
         : "-top-2 left-32 max-[350px]:w-[100px] max-[350px]:left-[19%] max-[370px]:left-22 max-[380px]:left-9 max-[400px]:left-30 w-[100px]"
       : "top-18 max-[400px]:left-[8.4%] left-10 w-[50px] h-[40px] max-[380px]:left-[8%]"
-} $[@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16  md:left-2 [@media(min-width:500px)_and_(max-width:600px)]:left-12 lg:left-8 xl  xl:left-34 ${selectedTheme === themes[2].src ? "2xl:left-45" : "2xl:left-48"}  [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={crashAnimating ? crashAnimation : { rotateX: 0 }}  onClick={() => handleHiHatTap(setIsCrashAnimating, 'hithatOne', 700)}/>
+} $[@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16  md:left-2 [@media(min-width:500px)_and_(max-width:600px)]:left-12 lg:left-8 xl  xl:left-34 ${selectedTheme === themes[2].src ? "2xl:left-45" : "2xl:left-48"}  [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={crashAnimating ? crashAnimation : { rotateX: 0 }}  onClick={() => handleHiHatTap(setIsCrashAnimating, 'hithatOne', 200)}/>
       <motion.img src="/hi-hat-left-top.png" className={`absolute select-none  ${fullScreen && activeFeature
       ? "-top-2 left-59 max-[350px]:w-[90px] max-[350px]:left-[30%] w-[100px] max-[370px]:left-44 max-[380px]:left-34 max-[400px]:left-53" // custom combo
       : fullScreen
         ? "-top-2 left-54 w-[100px]  max-[350px]:w-[90px] max-[350px]:left-[28%] max-[370px]:left-40 max-[380px]:left-30 max-[400px]:left-50"
         : "top-18 left-20 w-[50px] h-[40px]   max-[400px]:left-18"
-    }  [@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16   md:left-23 [@media(min-width:500px)_and_(max-width:600px)]:left-28 lg:left-36   xl:left-60 ${selectedTheme === themes[2].src ? "2xl:left-72" : "2xl:left-74"}   [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={isLeftDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }} onTap={() => handleHiHatTap(setIsLeftDiscAnimating, 'hithatTwo', 600)} />
+    }  [@media(min-width:500px)_and_(max-width:600px)]:top-12 md:top-16   md:left-23 [@media(min-width:500px)_and_(max-width:600px)]:left-28 lg:left-36   xl:left-60 ${selectedTheme === themes[2].src ? "2xl:left-72" : "2xl:left-74"}   [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px] 2xl:w-[160px] 2xl:h-[60px]`} animate={isLeftDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }} onTap={() => handleHiHatTap(setIsLeftDiscAnimating, 'hithatTwo', 200)} />
       <motion.img
   src="/hi-hat-right-image.png"
   className={`absolute select-none
@@ -709,7 +709,7 @@ useEffect(() => {
     [@media(min-width:500px)_and_(max-width:600px)]:w-[70px] md:w-[90px] md:h-[70px]
     lg:w-[110px] lg:h-[90px] 2xl:w-[160px] 2xl:h-[60px]`}
   animate={isRightDiscAnimating ? hitAnimation : { rotate: 0, scale: 1 }}
-  onTap={() => handleHiHatTap(setIsRightDiscAnimating, 'hithatThree', 600)}
+  onTap={() => handleHiHatTap(setIsRightDiscAnimating, 'hithatThree', 200)}
 />
    <img src={selectedTheme}alt="Description" className={`object-contain select-none ${fullScreen ? "w-full h-full " : "w-5/6 h-[80%] "}    md:w-full `} />
    {/*overlay div */}
